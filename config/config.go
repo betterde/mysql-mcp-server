@@ -1,0 +1,70 @@
+package config
+
+import (
+	"errors"
+	"os"
+	"strings"
+
+	"github.com/betterde/mysql-mcp-server/intenal/journal"
+	"github.com/spf13/viper"
+)
+
+var Conf *Config
+
+type Logging struct {
+	Level string `yaml:"level" mapstructure:"LEVEL"`
+}
+
+type Config struct {
+	DSN      string  `yaml:"dsn" mapstructure:"DSN"`
+	Logging  Logging `yaml:"logging" mapstructure:"LOGGING"`
+	ReadOnly bool    `yaml:"read_only" mapstructure:"READ_ONLY"`
+}
+
+func Parse(file string) {
+	if file != "" {
+		viper.SetConfigFile(file)
+	} else {
+		viper.AddConfigPath(".")
+		viper.SetConfigType("yml")
+		viper.SetConfigType("yaml")
+		viper.SetConfigName(".config")
+		viper.AddConfigPath("/etc/mcp-servers/mysql")
+	}
+
+	// read in environment variables that match
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+	viper.SetEnvPrefix("MYSQL_MCP_SERVER")
+
+	var notFoundError viper.ConfigFileNotFoundError
+
+	// If a config file is found, read it in.
+	if err := viper.ReadInConfig(); err != nil && errors.As(err, &notFoundError) {
+		viper.SetDefault("READ_ONLY", true)
+		viper.SetDefault("LOGGING.LEVEL", "DEBUG")
+
+		err = viper.BindEnv("DSN", "MYSQL_MCP_SERVER_DSN")
+		if err != nil {
+			journal.Logger.Sugar().Error(err)
+		}
+
+		err = viper.BindEnv("READ_ONLY", "MYSQL_MCP_SERVER_READ_ONLY")
+		if err != nil {
+			journal.Logger.Sugar().Error(err)
+		}
+
+		err = viper.BindEnv("LOGGING.LEVEL", "MYSQL_MCP_SERVER_LOGGING_LEVEL")
+		if err != nil {
+			journal.Logger.Sugar().Error(err)
+		}
+	}
+
+	// read in environment variables that match
+	viper.AutomaticEnv()
+
+	err := viper.Unmarshal(&Conf)
+	if err != nil {
+		journal.Logger.Sugar().Errorf("Unable to decode into config struct, %v", err)
+		os.Exit(1)
+	}
+}
