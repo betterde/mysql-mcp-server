@@ -1,4 +1,6 @@
 dsn: user:pass@tcp(127.0.0.1:3306)
-logger:
+http:
+  listen: 0.0.0.0:8080
+logging:
   level: DEBUG
 read_only: true

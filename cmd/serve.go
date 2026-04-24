@@ -23,11 +23,24 @@ package cmd
 
 import (
 	"context"
+	"fmt"
+	"log/slog"
+	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
+	"github.com/betterde/mysql-mcp-server/config"
+	"github.com/betterde/mysql-mcp-server/global"
 	"github.com/betterde/mysql-mcp-server/intenal/journal"
+	"github.com/betterde/mysql-mcp-server/intenal/middleware"
+	"github.com/betterde/mysql-mcp-server/intenal/mysql"
 	"github.com/betterde/mysql-mcp-server/tools"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/spf13/cobra"
+	"go.uber.org/zap"
+	"go.uber.org/zap/exp/zapslog"
 )
 
 // serveCmd represents the serve command
@@ -35,16 +48,7 @@ var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Start the MCP server",
 	Run: func(cmd *cobra.Command, args []string) {
-		server := mcp.NewServer(&mcp.Implementation{
-			Name:    "mysql-mcp-server",
-			Version: "v1.0.0",
-		}, nil)
-
-		tools.DatabaseRegister(server)
-
-		if err := server.Run(context.Background(), &mcp.StdioTransport{}); err != nil {
-			journal.Logger.Panic(err.Error())
-		}
+		start(global.Ctx)
 	},
 }
 
@@ -60,4 +64,52 @@ func init() {
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
 	// serveCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+}
+
+func start(ctx context.Context) {
+	server := mcp.NewServer(&mcp.Implementation{
+		Name:       "mysql-mcp-server",
+		Version:    "v1.0.0",
+		WebsiteURL: "https://github.com/betterde/mysql-mcp-server",
+	}, &mcp.ServerOptions{})
+
+	server.AddReceivingMiddleware(middleware.Logging)
+
+	mysql.Init(context.Background(), config.Conf)
+
+	tools.Register(server)
+
+	loggerHandler := zapslog.NewHandler(journal.Logger.Core(), zapslog.WithName(journal.Logger.Name()))
+
+	handler := mcp.NewStreamableHTTPHandler(func(req *http.Request) *mcp.Server {
+		return server
+	}, &mcp.StreamableHTTPOptions{
+		Logger:                     slog.New(loggerHandler),
+		Stateless:                  true,
+		DisableLocalhostProtection: true,
+	})
+
+	mux := http.NewServeMux()
+	mux.Handle("/", handler)
+
+	journal.Logger.Info("Starting MCP streamable HTTP server",
+		zap.String("addr", config.Conf.HTTP.Listen),
+		zap.String("endpoint", "/"),
+	)
+
+	go func() {
+		if err := http.ListenAndServe(config.Conf.HTTP.Listen, mux); err != nil {
+			journal.Logger.Panic(err.Error())
+		}
+	}()
+
+	signalChan := make(chan os.Signal, 1)
+	signal.Notify(signalChan, os.Interrupt, syscall.SIGTERM)
+
+	<-signalChan
+	fmt.Print("\r\033[K")
+	journal.Logger.Sugar().Info("Shutdown signal received, exiting...")
+
+	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
 }

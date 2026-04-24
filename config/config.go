@@ -11,12 +11,19 @@ import (
 
 var Conf *Config
 
+type HTTP struct {
+	Listen                     string `yaml:"listen" mapstructure:"LISTEN"`
+	Stateless                  bool   `yaml:"stateless" mapstructure:"STATELESS"`
+	DisableLocalhostProtection bool   `yaml:"disable_localhost_protection" mapstructure:"DISABLE_LOCALHOST_PROTECTION"`
+}
+
 type Logging struct {
 	Level string `yaml:"level" mapstructure:"LEVEL"`
 }
 
 type Config struct {
 	DSN      string  `yaml:"dsn" mapstructure:"DSN"`
+	HTTP     HTTP    `yaml:"http" mapstructure:"HTTP"`
 	Logging  Logging `yaml:"logging" mapstructure:"LOGGING"`
 	ReadOnly bool    `yaml:"read_only" mapstructure:"READ_ONLY"`
 }
@@ -41,9 +48,15 @@ func Parse(file string) {
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err != nil && errors.As(err, &notFoundError) {
 		viper.SetDefault("READ_ONLY", true)
+		viper.SetDefault("HTTP.LISTEN", "0.0.0.0:8080")
 		viper.SetDefault("LOGGING.LEVEL", "DEBUG")
 
 		err = viper.BindEnv("DSN", "MYSQL_MCP_SERVER_DSN")
+		if err != nil {
+			journal.Logger.Sugar().Error(err)
+		}
+
+		err = viper.BindEnv("HTTP.LISTEN", "MYSQL_MCP_SERVER_HTTP_LISTEN")
 		if err != nil {
 			journal.Logger.Sugar().Error(err)
 		}
