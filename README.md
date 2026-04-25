@@ -43,7 +43,7 @@ go install github.com/betterde/mysql-mcp-server@latest
 ### Docker
 
 ```bash
-docker run -d --name mysql-mcp-server betterde/mysql-mcp-server:latest
+docker run -d --name mysql-mcp-server ghcr.io/betterde/mysql-mcp-server:latest
 ```
 
 ### Build from source
