@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/betterde/mysql-mcp-server/intenal/journal"
+	"github.com/betterde/mysql-mcp-server/internal/journal"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"go.uber.org/zap"
 )

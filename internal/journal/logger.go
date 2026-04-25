@@ -3,7 +3,7 @@ package journal
 import (
 	"os"
 
-	"github.com/betterde/mysql-mcp-server/intenal/build"
+	"github.com/betterde/mysql-mcp-server/internal/build"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

@@ -26,8 +26,8 @@ import (
 	"os"
 
 	"github.com/betterde/mysql-mcp-server/config"
-	"github.com/betterde/mysql-mcp-server/intenal/build"
-	"github.com/betterde/mysql-mcp-server/intenal/journal"
+	"github.com/betterde/mysql-mcp-server/internal/build"
+	"github.com/betterde/mysql-mcp-server/internal/journal"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

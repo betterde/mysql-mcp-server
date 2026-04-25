@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/betterde/mysql-mcp-server/intenal/mysql"
+	"github.com/betterde/mysql-mcp-server/internal/mysql"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 

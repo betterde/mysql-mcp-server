@@ -33,9 +33,9 @@ import (
 
 	"github.com/betterde/mysql-mcp-server/config"
 	"github.com/betterde/mysql-mcp-server/global"
-	"github.com/betterde/mysql-mcp-server/intenal/journal"
-	"github.com/betterde/mysql-mcp-server/intenal/middleware"
-	"github.com/betterde/mysql-mcp-server/intenal/mysql"
+	"github.com/betterde/mysql-mcp-server/internal/journal"
+	"github.com/betterde/mysql-mcp-server/internal/middleware"
+	"github.com/betterde/mysql-mcp-server/internal/mysql"
 	"github.com/betterde/mysql-mcp-server/tools"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/spf13/cobra"
@@ -71,7 +71,7 @@ func start(ctx context.Context) {
 		Name:       "mysql-mcp-server",
 		Version:    "v1.0.0",
 		WebsiteURL: "https://github.com/betterde/mysql-mcp-server",
-	}, &mcp.ServerOptions{})
+	}, nil)
 
 	server.AddReceivingMiddleware(middleware.Logging)
 

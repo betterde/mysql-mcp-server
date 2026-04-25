@@ -6,8 +6,8 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/betterde/mysql-mcp-server/intenal/journal"
-	"github.com/betterde/mysql-mcp-server/intenal/mysql"
+	"github.com/betterde/mysql-mcp-server/internal/journal"
+	"github.com/betterde/mysql-mcp-server/internal/mysql"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 

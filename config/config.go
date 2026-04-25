@@ -5,8 +5,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/betterde/mysql-mcp-server/intenal/journal"
+	"github.com/betterde/mysql-mcp-server/internal/journal"
 	"github.com/spf13/viper"
+	"github.com/subosito/gotenv"
 )
 
 var Conf *Config
@@ -29,6 +30,11 @@ type Config struct {
 }
 
 func Parse(file string) {
+	err := gotenv.Load()
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		journal.Logger.Sugar().Errorf("Unable to load .env file, %v", err)
+	}
+
 	if file != "" {
 		viper.SetConfigFile(file)
 	} else {
@@ -43,39 +49,38 @@ func Parse(file string) {
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.SetEnvPrefix("MYSQL_MCP_SERVER")
 
+	viper.SetDefault("READ_ONLY", true)
+	viper.SetDefault("HTTP.LISTEN", "0.0.0.0:8080")
+	viper.SetDefault("LOGGING.LEVEL", "DEBUG")
+
+	if err := viper.BindEnv("DSN", "MYSQL_MCP_SERVER_DSN"); err != nil {
+		journal.Logger.Sugar().Error(err)
+	}
+
+	if err := viper.BindEnv("HTTP.LISTEN", "MYSQL_MCP_SERVER_HTTP_LISTEN"); err != nil {
+		journal.Logger.Sugar().Error(err)
+	}
+
+	if err := viper.BindEnv("READ_ONLY", "MYSQL_MCP_SERVER_READ_ONLY"); err != nil {
+		journal.Logger.Sugar().Error(err)
+	}
+
+	if err := viper.BindEnv("LOGGING.LEVEL", "MYSQL_MCP_SERVER_LOGGING_LEVEL"); err != nil {
+		journal.Logger.Sugar().Error(err)
+	}
+
 	var notFoundError viper.ConfigFileNotFoundError
 
 	// If a config file is found, read it in.
-	if err := viper.ReadInConfig(); err != nil && errors.As(err, &notFoundError) {
-		viper.SetDefault("READ_ONLY", true)
-		viper.SetDefault("HTTP.LISTEN", "0.0.0.0:8080")
-		viper.SetDefault("LOGGING.LEVEL", "DEBUG")
-
-		err = viper.BindEnv("DSN", "MYSQL_MCP_SERVER_DSN")
-		if err != nil {
-			journal.Logger.Sugar().Error(err)
-		}
-
-		err = viper.BindEnv("HTTP.LISTEN", "MYSQL_MCP_SERVER_HTTP_LISTEN")
-		if err != nil {
-			journal.Logger.Sugar().Error(err)
-		}
-
-		err = viper.BindEnv("READ_ONLY", "MYSQL_MCP_SERVER_READ_ONLY")
-		if err != nil {
-			journal.Logger.Sugar().Error(err)
-		}
-
-		err = viper.BindEnv("LOGGING.LEVEL", "MYSQL_MCP_SERVER_LOGGING_LEVEL")
-		if err != nil {
-			journal.Logger.Sugar().Error(err)
-		}
+	if err := viper.ReadInConfig(); err != nil && !errors.As(err, &notFoundError) {
+		journal.Logger.Sugar().Errorf("Unable to read config file, %v", err)
+		os.Exit(1)
 	}
 
 	// read in environment variables that match
 	viper.AutomaticEnv()
 
-	err := viper.Unmarshal(&Conf)
+	err = viper.Unmarshal(&Conf)
 	if err != nil {
 		journal.Logger.Sugar().Errorf("Unable to decode into config struct, %v", err)
 		os.Exit(1)

@@ -8,7 +8,7 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 
 	"github.com/betterde/mysql-mcp-server/config"
-	"github.com/betterde/mysql-mcp-server/intenal/journal"
+	"github.com/betterde/mysql-mcp-server/internal/journal"
 )
 
 var Conn *sql.Conn
