@@ -33,6 +33,7 @@ import (
 
 	"github.com/betterde/mysql-mcp-server/config"
 	"github.com/betterde/mysql-mcp-server/global"
+	"github.com/betterde/mysql-mcp-server/internal/build"
 	"github.com/betterde/mysql-mcp-server/internal/journal"
 	"github.com/betterde/mysql-mcp-server/internal/middleware"
 	"github.com/betterde/mysql-mcp-server/internal/mysql"
@@ -69,9 +70,9 @@ func init() {
 
 func start(ctx context.Context) {
 	server := mcp.NewServer(&mcp.Implementation{
-		Name:       "mysql-mcp-server",
-		Version:    "v1.0.0",
-		WebsiteURL: "https://github.com/betterde/mysql-mcp-server",
+		Name:       build.Name,
+		Version:    build.Version,
+		WebsiteURL: build.WebsiteURL,
 	}, nil)
 
 	server.AddReceivingMiddleware(middleware.Logging)
