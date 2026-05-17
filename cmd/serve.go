@@ -92,11 +92,11 @@ func start(ctx context.Context) {
 	})
 
 	mux := http.NewServeMux()
-	mux.Handle("/", handler)
+	mux.Handle(config.Conf.HTTP.URI, handler)
 
 	journal.Logger.Info("Starting MCP streamable HTTP server",
 		zap.String("addr", config.Conf.HTTP.Listen),
-		zap.String("endpoint", "/"),
+		zap.String("endpoint", config.Conf.HTTP.URI),
 	)
 
 	go func() {

@@ -13,6 +13,7 @@ import (
 var Conf *Config
 
 type HTTP struct {
+	URI                        string `yaml:"uri" mapstructure:"URI"`
 	Listen                     string `yaml:"listen" mapstructure:"LISTEN"`
 	Stateless                  bool   `yaml:"stateless" mapstructure:"STATELESS"`
 	DisableLocalhostProtection bool   `yaml:"disable_localhost_protection" mapstructure:"DISABLE_LOCALHOST_PROTECTION"`
@@ -50,10 +51,15 @@ func Parse(file string) {
 	viper.SetEnvPrefix("MYSQL_MCP_SERVER")
 
 	viper.SetDefault("READ_ONLY", true)
+	viper.SetDefault("HTTP.URI", "/mcp")
 	viper.SetDefault("HTTP.LISTEN", "0.0.0.0:8080")
 	viper.SetDefault("LOGGING.LEVEL", "DEBUG")
 
 	if err := viper.BindEnv("DSN", "MYSQL_MCP_SERVER_DSN"); err != nil {
+		journal.Logger.Sugar().Error(err)
+	}
+
+	if err := viper.BindEnv("HTTP.URI", "MYSQL_MCP_SERVER_HTTP_URI"); err != nil {
 		journal.Logger.Sugar().Error(err)
 	}
 

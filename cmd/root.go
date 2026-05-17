@@ -93,5 +93,7 @@ func initConfig() {
 		os.Exit(1)
 	}
 
-	journal.Logger.Sugar().Debugf("Configuration file currently in use: %s", viper.ConfigFileUsed())
+	if viper.ConfigFileUsed() != "" {
+		journal.Logger.Sugar().Debugf("Configuration file currently in use: %s", viper.ConfigFileUsed())
+	}
 }

@@ -1,5 +1,6 @@
 dsn: user:pass@tcp(127.0.0.1:3306)
 http:
+  uri: /mcp
   listen: 0.0.0.0:8080
 logging:
   level: DEBUG
