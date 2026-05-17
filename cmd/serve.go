@@ -36,6 +36,7 @@ import (
 	"github.com/betterde/mysql-mcp-server/internal/journal"
 	"github.com/betterde/mysql-mcp-server/internal/middleware"
 	"github.com/betterde/mysql-mcp-server/internal/mysql"
+	"github.com/betterde/mysql-mcp-server/resources"
 	"github.com/betterde/mysql-mcp-server/tools"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/spf13/cobra"
@@ -78,6 +79,7 @@ func start(ctx context.Context) {
 	mysql.Init(context.Background(), config.Conf)
 
 	tools.Register(server)
+	resources.Register(server)
 
 	loggerHandler := zapslog.NewHandler(journal.Logger.Core(), zapslog.WithName(journal.Logger.Name()))
 
